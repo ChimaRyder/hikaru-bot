@@ -5,9 +5,14 @@ A simple chess-playing AI bot built with TensorFlow. The project includes a Jupy
 The original training was done on Hikaru Nakamura games. Due to a lack of resources, the model was trained with only 2000 games.
 
 ## 📁 Project Structure
-
-. ├── hikaru.ipynb # Jupyter Notebook for training the model ├── api.py # Flask API to interact with the bot ├── model/ # Folder to store trained model files ├── requirements.txt # Dependencies └── README.md # You're here!
-
+```
+.
+├── hikaru.ipynb # Jupyter Notebook for training the model
+├── api.py # Flask API to interact with the bot
+├── model/ # Folder to store trained model files
+├── requirements.txt # Dependencies
+└── README.md # You're here!
+```
 
 ## 🚀 Features
 
@@ -20,18 +25,18 @@ The original training was done on Hikaru Nakamura games. Due to a lack of resour
 Open the Jupyter Notebook:
 
 ```bash
-jupyter notebook chess_bot.ipynb
+jupyter notebook hikaru.ipynb
 ```
 
 Make sure to have your dataset ready and follow the notebook steps to:
 
-    Load and preprocess the data.
+- Load and preprocess the data.
 
-    Build a model with TensorFlow.
+- Build a model with TensorFlow.
 
-    Train and evaluate the model.
+- Train and evaluate the model.
 
-    Save the trained model to the model/ directory.
+- Save the trained model to the model/ directory.
 
 ## 🌐 Running the Flask API
 
@@ -83,3 +88,5 @@ Make sure you have Python 3.7 or above.
     python-chess
 
     Flask
+
+    flask-cors
