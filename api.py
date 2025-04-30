@@ -5,24 +5,40 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.utils import to_categorical
 import numpy as np
 from chess import pgn, Board
+from chess import PAWN, KNIGHT, BISHOP, ROOK, KING, QUEEN
 from flask_cors import CORS
 from io import StringIO
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
-model = load_model("hikarubot_24_2.keras")
+model = load_model("hikarubot_24_3.keras")
 
 # turn the board into a matrix
 def board_to_matrix(board : Board):
-    matrix = np.zeros((8, 8, 15))
+    matrix = np.zeros((8, 8, 16))
     piece_map = board.piece_map()
 
     for square, piece in piece_map.items():
         row, col = divmod(square, 8)
         piece_type = piece.piece_type - 1
         piece_color = 0 if piece.color else 6
-        matrix[row, col, piece_type + piece_color] = 1 if piece.color else 2
+        piece_eval = 1 if piece.color else -1
+
+        if piece.piece_type == PAWN:
+            piece_eval *= 10
+        elif piece.piece_type == KNIGHT:
+            piece_eval *= 30
+        elif piece.piece_type == BISHOP:
+            piece_eval *= 30
+        elif piece.piece_type == ROOK:
+            piece_eval *= 50
+        elif piece.piece_type == QUEEN:
+            piece_eval *= 90
+        elif piece.piece_type == KING:
+            piece_eval *= 900
+
+        matrix[row, col, piece_type + piece_color] = piece_eval
 
     legal_moves = board.legal_moves
     pseudo_moves = board.pseudo_legal_moves
@@ -38,7 +54,11 @@ def board_to_matrix(board : Board):
     for move in pseudo_moves:
         to_square = move.to_square
         row_to, col_to = divmod(to_square, 8)
-        matrix[row_to, col_to, 14] = 1
+
+        if board.gives_check(move):
+            matrix[row_to, col_to, 15] = 1
+        else:
+            matrix[row_to, col_to, 14] = 1
 
     return matrix
 
@@ -73,13 +93,14 @@ def best_move():
 
     # X, y = input_for_nn(pgn)
     # y, move_to_int = encode_moves(y)
-    move_to_int = np.load('move_to_int.npy', allow_pickle=True).item()
+    move_to_int = np.load('move_to_int_24_3.npy', allow_pickle=True).item()
 
     int_to_move = dict(zip(move_to_int.values(), move_to_int.keys()))
 
     print(pgn.board())
-    board_matrix = board_to_matrix(pgn.board()).reshape(1, 8, 8, 15)
+    board_matrix = board_to_matrix(pgn.board()).reshape(1, 8, 8, 16)
     prediction = model.predict(board_matrix)
+    print(np.argmax(prediction))
 
     legal_moves = list(pgn.board().legal_moves)
     legal_moves_uci = [move.uci() for move in legal_moves]
@@ -88,7 +109,7 @@ def best_move():
     for idx in sorted_ind:
         move = int_to_move[idx]
         if move in legal_moves_uci:
-            print(f"found move: {move}")
+            print(f"found move: {idx} & {move}")
             return jsonify({'move': move})
 
     return jsonify({'result': "resigned"})
