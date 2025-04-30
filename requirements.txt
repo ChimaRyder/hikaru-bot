@@ -1,0 +1,4 @@
+chess
+tensorflow
+flask
+flask-cors
